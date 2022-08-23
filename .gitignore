@@ -131,3 +131,6 @@ dmypy.json
 
 # Personal
 .idea/
+.DS_Store
+dataset/
+runs/
