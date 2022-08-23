@@ -35,3 +35,36 @@ class Generator(nn.Module):
     def forward(self, x):
         return self.gen(x)
 
+
+
+lr = 3e-4
+z_dim = 64
+img_dim = 28 * 28 * 1
+batch_size = 32
+num_epochs = 50
+
+disc = Discriminator(img_dim)
+gen = Generator(z_dim, img_dim)
+fixed_noise = torch.randn((batch_size, z_dim))
+transforms = transforms.Compose(
+    [transforms.ToTensor(), transforms.Normalize((0.1307,), (0.3081,))]
+)
+dataset = datasets.MNIST(root='dataset/', transform=transforms, download=True)
+loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
+
+opt_disc = optim.Adam(disc.Parameters(), lr=lr)
+opt_gen = optim.Adam(gen.Parameters(), lr=lr)
+criterion = nn.BCELoss()
+writer_fake = SummaryWriter(f'runs/GAN_MNIST/fake')
+writer_real = SummaryWriter(f'runs/GAN_MNIST/real')
+step = 0
+
+for epoch in range(num_epochs):
+    for batch_idx, (real, _) in enumerate(loader):
+        real = real.view(-1, 784)
+        batch_size = real.shape[0]
+
+        # train discriminator
+        noise = torch.randn((batch_size, z_dim))
+        fake = gen(noise)
+        disc_real = disc(real).view(-1)
